@@ -33,109 +33,6 @@
 </html>
 
 <script>
-    let clientId;
-    let clientSecret;
-    let sent_len;
-    let token;
-    let json_data;
-    let json_data1;
-    let docs;
-    let result;
-
-    function getToken() {
-        const json_data = {
-            "grantType": "client_credentials",
-            "clientId": "Sp1j0exNxHq3XPvMXqp0HAOwtL0cSdae",
-            "clientSecret": "k6geQCRZMSQIhTnC"
-        };
-
-        $.ajax({
-            type: "post",
-            url: "https://api.ce-cotoha.com/v1/oauth/accesstokens",
-            data: JSON.stringify(json_data),
-            contentType: 'application/json',
-            dataType: "json",
-            success: function (data) {
-                token = data.access_token;
-            },
-            error: function () {
-            }
-        })
-    };
-
-    function parse(transcript) {
-        docs = ' ';
-        var previous;
-        const json_data1 = {
-            "sentence": transcript,
-            "type": "default"
-        };
-        $.ajax({
-            type: "post",
-            url: 'https://api.ce-cotoha.com/api/dev/nlp/v1/parse',
-            headers: {
-                'Authorization': 'Bearer ' + token,
-            },
-            data: JSON.stringify(json_data1),
-            contentType: 'application/json;charset=UTF-8',
-            dataType: "json",
-            success: function (data) {
-                result = data.result;
-                //list
-                var form_list = [];
-                var pos_list = [];
-                var features_list = [];
-                for (var i = 0; i < result.length; i++) {
-                    for (var key in result[i]) {
-                        if (key == 'tokens') {
-                            console.log(result[i][key][k]);
-                            for (var k in result[i][key]) {
-                                form_list.push(result[i][key][k].form)
-                                pos_list.push(result[i][key][k].pos)
-                                features_list.push(result[i][key][k].features)
-                            }
-                        }
-                    }
-                };
-
-                //word
-                for (var i = 0; i < form_list.length; i++) {
-                    docs = docs + form_list[i];
-                    if (i < form_list.length - 1) {
-                        if (pos_list[i] == '動詞接尾辞' && pos_list[i + 1] != '接続接尾辞' && features_list[i] != '動詞語幹') {
-                            docs = docs + '。';
-                        } else if (pos_list[i] == "判定詞" && pos_list[i + 1] != '接続接尾辞' && features_list[i] == '連用') {
-                            docs = docs + '、';
-                        } else if (pos_list[i] == '連用助詞' && pos_list[i - 1] != '接続接尾辞') {
-                            docs = docs + '、';
-                        } else if (pos_list[i] == '接続接尾辞' && pos_list[i - 1] != '接続接尾辞') {
-                            if (form_list[i] == 'か') {
-                                docs = docs + '？　';
-                            } else {
-                                docs = docs + '、';
-                            }
-                        }
-                    } else {
-                        if (pos_list[i] == '動詞接尾辞' && features_list[i] != '動詞語幹') {
-                            docs = docs + '。';
-                        } else if (pos_list[i] == "判定詞" && features_list[i] == '連用') {
-                            docs = docs + '、';
-                        } else if (pos_list[i] == '連用助詞') {
-                            docs = docs + '、';
-                        } else if (pos_list[i] == '接続接尾辞') {
-                            docs = docs + '、';
-                        }
-                    }
-                };
-                results.innerHTML = docs + '</i>';
-            },
-            error: function () {
-                alert("error");
-            }
-        });
-    };
-
-
     const startBtn = document.querySelector('#start-btn');
     const stopBtn = document.querySelector('#stop-btn');
     const resultDiv = document.querySelector('#result-div');
@@ -154,6 +51,7 @@
         for (let i = event.resultIndex; i < event.results.length; i++) {
             let transcript = event.results[i][0].transcript;
             if (event.results[i].isFinal) {
+
                 finalTranscript += transcript;
                 // finalTranscript += '　';
                 finalTranscript += '<br>';
@@ -166,10 +64,8 @@
 
     startBtn.onclick = () => {
         recognition.start();
-        getToken();
     }
     stopBtn.onclick = () => {
         recognition.stop();
-        parse(finalTranscript);
     }
 </script>
